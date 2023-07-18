@@ -1,0 +1,11 @@
+#graph {
+    height: 500px;
+    width: 500px;
+    border: 1px solid black;
+}  
+
+table {
+	font-size: 14px;
+	font-style: arial;
+	color: black;
+}

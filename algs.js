@@ -1,0 +1,7 @@
+/*
+Сортировка вставками
+*/
+function sortByInsertions (){
+
+	
+}

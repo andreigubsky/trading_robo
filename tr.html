@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<script src="core.js"></script>
+	<script src="candles.js"></script>
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+	<p class="top">Тренд</p>
+	<input type="button" value="Генерация" onclick="generate()">
+	Шаг:<input type="text" name="Шаг" id="step" value="20" size=5/>
+	Интервал:<input type="text" name="Интервал" id="inter" value="50" size=5/>
+	Масштаб:<input type="text" name="Масштаб" id="scale" value="1" size=5/><br>
+	Диапазон:<input type="text" name="Диапазон MA" id="range" value="2" size=5/>
+	Диапазон:<input type="text" name="Диапазон MA 2" id="range_4" value="4" size=5/>
+	Мин курс:<input type="text" name="Мин курс" id="min" value="300" size=5/>
+	Макс курс:<input type="text" name="Макс курс" id="max" value="700" size=5/>
+	
+	<canvas height='500' width='500' id='graph'>Обновите браузер</canvas>
+		<script>
+		function generate(){
+		
+		showCandle();
+		/* Settings */
+		var step = Number(document.getElementById("step").value);
+		var inter = Number(document.getElementById("inter").value);
+		var scale = Number(document.getElementById("scale").value);
+		var range = Number(document.getElementById("range").value);
+		var range_4 = Number(document.getElementById("range_4").value);
+		var min = Number(document.getElementById("min").value);
+		var max = Number(document.getElementById("max").value);
+		
+		//array of courses
+		var data = [];
+		//fill in empty array
+		for (let x = 0; x<=step; x++){
+			data[x] = x+1;
+		}
+		
+		//fill in array with random courses
+		/*data.forEach(function(item,i,data){
+			data[i]=Math.floor((Math.random()+1) *(max - min)-min);
+			if(i>=5)
+				data[i]=Math.floor((Math.random()+1) *(max - min)-min +100);
+			if(i>=10)
+				data[i]=Math.floor((Math.random()+1) *(max - min)-min +200);	
+			if(i>=15)
+				data[i]=Math.floor((Math.random()+1) *(max - min)-min +300);	
+		}
+		);*/
+		
+		data=[290, 250, 270, 280, 290, 240, 200, 190, 300, 350, 290, 370, 320, 400, 300, 440, 280, 270, 280, 250];
+		
+		for (let i=0; i<data.length; i++){
+			//console.log(data[i]);
+		}
+		
+		const dmax = Math.max(...data);
+		const dmin = Math.min(...data);
+		
+			var graph = document.getElementById("graph"),
+			ctx = graph.getContext('2d');
+				
+			function drawLine(ctx, startX, startY, endX, endY) {
+				  ctx.save();
+				  ctx.beginPath();
+				  ctx.moveTo(startX, startY);
+				  ctx.lineTo(endX, endY);
+				  ctx.stroke();
+				  ctx.restore();
+			}
+				graph.style.width = graph.offsetWidth +'px';
+				graph.style.height = graph.offsetHeight +'px';
+				//console.log(graph.style.width);
+				//console.log(graph.style.height);
+				
+				
+				let canvasWidth = graph.width = graph.offsetWidth * 2;
+				let canvasHeight = graph.height = graph.offsetHeight * 2;
+				//console.log("W:"+canvasWidth);
+				//console.log("H:"+canvasHeight);
+				drawLine(ctx, 0, canvasHeight -50, canvasWidth, canvasHeight-50);
+				ctx.font = '20px Arial';
+
+				//шкала
+				let leftPx = 0;
+				for (let i = 0; i <= step; i++) {
+				  leftPx += 50;
+				  drawLine(ctx, leftPx, canvasHeight - 50, leftPx, canvasHeight - 50);
+				  ctx.fillText(i, leftPx - 35, canvasHeight - 15);
+				}
+
+				function getCursorPosition(graph, event) {
+					const rect = graph.getBoundingClientRect();
+					const x = event.clientX - rect.left;
+					const y = event.clientY - rect.top;
+					
+					//console.log("x: " + x + " y: " + y);
+				}
+				graph.addEventListener('mousemove', function(e) {
+					getCursorPosition(graph, e)
+				})
+				
+			///////////////
+			//график курсов
+			ctx.beginPath();		
+			ctx.moveTo(0,data[0]/scale);		
+			for (let i=0,m =0; m<=step; i+=inter, m++){
+				ctx.lineTo(i, data[m]/scale);
+				//console.log("data[m]"+data[m]);
+			}			
+			ctx.strokeStyle = "black";
+			ctx.lineWidth = 2;
+			ctx.stroke();
+			
+			//линия поддержки
+			ctx.beginPath();
+			ctx.moveTo(0,dmin/scale);		
+			for (let i=step,m =0; i<inter,m<step; i+=inter, m++){
+				ctx.lineTo(i, dmin/scale);
+			}
+			ctx.strokeStyle = "blue";
+			ctx.lineWidth = 1;
+			ctx.stroke();
+			
+			//линия сопротивления
+			ctx.beginPath();
+			ctx.moveTo(0,dmax/scale);		
+			for (let i=step,m =0; i<inter,m<step; i+=inter, m++){
+				ctx.lineTo(i, dmax/scale);
+			}
+			
+			ctx.strokeStyle = "red";
+			ctx.lineWidth = 1;
+			ctx.stroke();
+			
+			//линия медианы
+			var sum = 0;
+			
+			for (let i=0,m =0; m<=step; i+=inter, m++){
+				sum += data[m];
+				console.log("Sum: "+sum);
+				
+			}
+						
+			//console.log("Min: "+dmin);
+			console.log("Mediana: "+Math.round(sum/step));
+			//console.log("Max: "+dmax);			
+			
+			ctx.beginPath();
+			ctx.moveTo(0,sum/step/scale);		
+			for (let i=step,m =0; i<inter,m<step; i+=inter, m++){
+				ctx.lineTo(i, sum/step/scale);
+			}
+			ctx.strokeStyle = "purple";
+			ctx.stroke();
+			
+			
+			// MA скользящее среднее
+			
+			var MA =[];
+			for (let x = 0; x<=step; x++){
+				MA[x] = 0;
+				console.log(MA[x]);
+			}
+			ctx.beginPath();
+			ctx.moveTo(range*inter,MA[0]/scale);
+
+			for(let k=0, i=range*inter; k<data.length; k++, i+=inter){	
+				
+				for(let n=k; n<(k+range); n++){
+					MA[k] += data[n];
+				}
+				MA[k] = MA[k]/range;
+				
+				ctx.lineTo(i, MA[k]/scale+200);
+				console.log("k: "+ k);
+				console.log("cur: "+ data[k]);
+				console.log("MA: "+ MA[k]);
+			}					
+			ctx.strokeStyle = "purple";
+			ctx.lineWidth = 1;
+			ctx.stroke();
+			
+			
+			
+			// MA_4 скользящее среднее
+			
+			var MA_4 =[];
+			for (let x = 0; x<=step; x++){
+				MA_4[x] = 0;
+				console.log(MA_4[x]);
+			}
+			ctx.beginPath();
+			ctx.moveTo(range_4*inter, MA_4[0]/scale);
+			
+			for(let k=0, i=range_4*inter; k<data.length; k++, i+=inter){	
+				
+				for(let n=k; n<(k+range_4); n++){
+					MA_4[k] += data[n];
+				}
+				MA_4[k] = MA_4[k]/range_4;
+				
+				ctx.lineTo(i, MA_4[k]/scale+200);
+				console.log("k: "+ k);
+				console.log("cur: "+ data[k]);
+				console.log("MA: "+ MA_4[k]);
+			}	
+					
+			ctx.strokeStyle = "green";
+			ctx.lineWidth = 1;
+			ctx.stroke();
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+
+			/*
+				Линия тренда
+			*/
+			/*
+			var line;
+			var y,a,x,b;
+			y=a*x+b;
+			//y=data[x];
+			//где пересечение с осью
+			//b=data[x];
+			
+			var x1,x2,y1,y2;
+			//(x-x1)/(x2-x1)=(y-y1)/(y2-y1)
+			//x=(y-y1)*(y2-y1)/(y2-y1)+x1
+			y=(x-x1)*(y2-y1)/(x2-x1)+y1
+			
+			ctx.beginPath();
+			ctx.moveTo(0,/scale);
+			data[x]-b=a*x;
+			
+			ctx.lineTo(x, /scale);
+			ctx.strokeStyle = "red";
+			ctx.stroke();
+			*/
+			
+			
+			
+			// вывод результатов в таблицу
+			var body = document.getElementsByTagName('body')[0];
+			var tbl = document.createElement('table');
+			
+			
+			var tr2 = document.createElement('tr');
+			 //console.log("TR:"+tr2);
+			 for (var j = 0; j < data.length; j++){
+				var td2 = document.createElement('td');
+				td2.innerHTML = j;
+				//console.log(j);
+				tr2.appendChild(td2);
+				//console.log(tr2);
+			  }
+			tbl.appendChild(tr2);
+			//console.log(tr2);
+			body.appendChild(tbl);
+			
+			///////////////////////////////////////////			
+
+			var tr = document.createElement('tr'); 
+			
+			
+			for (var j = 0; j < data.length; j++){
+				var td = document.createElement('td');
+				td.innerHTML = data[j];
+				tr.appendChild(td);
+			  }
+			 tbl.appendChild(tr);
+
+			var br = document.createElement('br');
+			body.appendChild(br);
+
+
+
+		/*
+			Объем торгов
+			
+		*/	
+			var trade_vol = [];
+
+			for (let x = 0; x<=step; x++){
+				trade_vol[x] = x+1;
+			}
+		
+			trade_vol.forEach(function(item,i,trade_vol){
+				trade_vol[i]=Math.floor((Math.random()+1) *(max - min)-min);
+				if(i>=5)
+					trade_vol[i]=Math.floor((Math.random()+1) *(max - min)-min);
+				if(i>=10)
+					trade_vol[i]=Math.floor((Math.random()+1) *(max - min)-min+500);	
+				if(i>=15)
+					trade_vol[i]=Math.floor((Math.random()+1) *(max - min)-min-100);	
+			}
+			);
+			ctx.beginPath();
+			ctx.moveTo(0,trade_vol[0]/scale);		
+			for (let i=0,m =0; m<=step; i+=inter, m++){
+				ctx.moveTo(i,0);
+				ctx.lineTo(i, trade_vol[m]/scale/4);
+				//console.log(i);
+				//console.log(trade_vol[m]);
+			ctx.strokeStyle = "red";
+			ctx.lineWidth = 1;
+			ctx.stroke();
+			}
+			
+			
+			//Вывод результатов в таблицу
+			// вывод результатов в таблицу
+			var tb_v = document.createElement('table');
+			var tr_v = document.createElement('tr'); 
+			var body_v = document.getElementsByTagName('body')[0];
+			//console.log(trade_vol);
+			for (let j = 0; j < trade_vol.length; j++){
+				var td_v = document.createElement('td');
+				//console.log(trade_vol[j]);
+				td_v.innerHTML = trade_vol[j];
+				tr_v.appendChild(td_v);
+			  }
+			tb_v.appendChild(tr_v);
+			//console.log(tb_v);
+			body_v.appendChild(tb_v);
+			//console.log(body_v);
+			
+			
+			
+			////////////////////////////////////////////
+			//bubbleSort (data);
+			
+			function bubbleSort(data) {
+				for (var i = 0, endI = data.length - 1; i < endI; i++) {
+					for (var j = 0, endJ = endI - i; j < endJ; j++) {
+						if (data[j] > data[j + 1]) {
+							var swap = data[j];
+							data[j] = data[j + 1];
+							data[j + 1] = swap;
+						}
+					}
+				}
+				
+				return data;
+			}	
+				bubbleSort(data);
+				for (var v=0; v<=scale; v++){
+					//console.log(data[v]);
+				}
+			
+			
+			//bubbleSort (data);
+			
+			
+			//график массива
+			ctx.beginPath();		
+			ctx.moveTo(0,data[0]/scale);		
+			for (let i=0,m =0; m<=step; i+=inter, m++){
+				//ctx.lineTo(i, data[m]/scale);
+			}			
+			
+			ctx.strokeStyle = "green";
+			ctx.stroke();
+			}
+			
+			
+			
+			
+			
+			
+		</script>
+</body>
+
+</html>

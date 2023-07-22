@@ -24,7 +24,10 @@
 	var scale = 10;
 	var min_course = 1000;
 	var max_course = 3000;
-	
+	var iny2 = 23;
+	var scale2 = 10;
+	var min_course2 = 1000;
+	var max_course2 = 3000;
 	
 		
 			

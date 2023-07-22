@@ -13,7 +13,7 @@
 	
 	//function generate(){}
 	
-	/*
+	
 	var iny = iny_input;
 	var scale = scale_input;
 	var min_course = min_input;
@@ -25,7 +25,7 @@
 	var min_course = 1000;
 	var max_course = 3000;
 	
-	*/	
+	
 		
 			
 	
